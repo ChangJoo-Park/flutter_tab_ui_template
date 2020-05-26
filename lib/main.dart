@@ -1,8 +1,21 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:remote_api_list/models/post.dart';
+
+Future<List<Post>> fetchPosts(http.Client client) async {
+  final response =
+      await client.get('https://jsonplaceholder.typicode.com/posts');
+  return compute(_parsePosts, response.body);
+}
+
+List<Post> _parsePosts(String responseBody) {
+  final parsed = json.decode(responseBody).cast<Map<String, dynamic>>();
+
+  return parsed.map<Post>((json) => Post.fromJson(json)).toList();
+}
 
 void main() {
   runApp(MyApp());
@@ -31,32 +44,72 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool initialLoad = true;
-  bool loading = false;
-  bool showLoading = false;
-  bool error = false;
-  List<Post> items = [];
+  bool _initialLoad = true;
+  bool _loading = false;
+  bool _showLoading = false;
+  bool _error = false;
+  List<Post> _items = [];
   String url;
 
   @override
   void initState() {
-    _refresh();
     super.initState();
+    _fetchPosts();
+  }
+
+  void _fetchPosts() {
+    if (this._loading) {
+      return;
+    }
+
+    setState(() {
+      this._loading = true;
+    });
+
+    fetchPosts(http.Client()).then((value) {
+      _items = value;
+
+      setState(() {
+        this._initialLoad = false;
+        this._loading = false;
+        this._error = false;
+      });
+    }).catchError((e) {
+      setState(() {
+        this._initialLoad = false;
+        this._loading = false;
+        this._error = true;
+      });
+    });
+  }
+
+  String get stateTitle {
+    if (_initialLoad) {
+      return '최초 로딩';
+    }
+    if (_loading) {
+      return '불러오는 중';
+    }
+    if (_error) {
+      return '에러';
+    }
+
+    return '완료';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text(stateTitle),
         actions: [
           IconButton(
-            icon: this.showLoading
+            icon: this._showLoading
                 ? Icon(Icons.notifications_active)
                 : Icon(Icons.notifications_off),
             onPressed: () {
               setState(() {
-                this.showLoading = !this.showLoading;
+                this._showLoading = !this._showLoading;
               });
             },
           ),
@@ -70,67 +123,85 @@ class _MyHomePageState extends State<MyHomePage> {
           )
         ],
       ),
-      body: _renderMainContent(showLoading: this.showLoading),
+      body: _renderContent(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _refresh();
-        },
-        tooltip: 'Refresh',
-        child: Icon(Icons.refresh),
-      ),
+          child: Icon(Icons.refresh),
+          onPressed: () {
+            _fetchPosts();
+          }),
     );
   }
 
-  Widget _renderMainContent({showLoading = false}) {
-    if (initialLoad || (loading && showLoading)) {
-      return Center(child: CircularProgressIndicator());
+  _renderContent() {
+    if (_error) {
+      return ErrorWidget();
     }
 
-    if (error) {
-      return Container(child: Text('에러'));
+    if (_initialLoad) {
+      return PostLoadingWidget();
     }
 
-    if (items.length == 0) {
-      return Container(child: Text('자료 없음'));
+    if (_showLoading && _loading) {
+      return PostLoadingWidget();
     }
 
-    if (items.length > 0) {
-      return Container(child: Text('자료 있음'));
+    if (_items.length == 0) {
+      return EmptyPostsWidget();
     }
 
-    return Container();
+    return ListView.builder(
+      itemCount: _items.length,
+      itemBuilder: (BuildContext context, int index) {
+        Post post = _items[index];
+        return PostListItemWidget(key: Key(post.id.toString()), post: post);
+      },
+    );
   }
+}
 
-  _refresh() async {
-    try {
-      if (this.loading) {
-        return;
-      }
-      setState(() {
-        this.loading = true;
-      });
+class PostListItemWidget extends StatelessWidget {
+  const PostListItemWidget({
+    Key key,
+    @required this.post,
+  }) : super(key: key);
 
-      http.Response response = await http.get(
-        'https://jsonplaceholder.typicode.com/posts',
-      );
-      List itemJSON = json.decode(response.body);
+  final Post post;
 
-      setState(() {
-        items = itemJSON.map((item) => Post.fromJson(item)).toList();
-      });
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(key: key, title: Text(post.title));
+  }
+}
 
-      setState(() {
-        this.loading = false;
-        this.initialLoad = false;
-        this.error = false;
-      });
-      print('종료');
-    } catch (e) {
-      setState(() {
-        this.error = true;
-        this.loading = false;
-      });
-      print(e);
-    }
+class ErrorWidget extends StatelessWidget {
+  const ErrorWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(child: Text('에러가 있음'));
+  }
+}
+
+class EmptyPostsWidget extends StatelessWidget {
+  const EmptyPostsWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(child: Text('데이터가 없음'));
+  }
+}
+
+class PostLoadingWidget extends StatelessWidget {
+  const PostLoadingWidget({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: CircularProgressIndicator());
   }
 }
