@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -251,6 +252,11 @@ class PostListItemWidget extends StatelessWidget {
     return ListTile(
       key: key,
       title: Text(post.title),
+      subtitle: AutoSizeText(
+        post.body,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
       onTap: () {
         Navigator.push(
           context,
