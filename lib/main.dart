@@ -252,14 +252,32 @@ class PostListItemWidget extends StatelessWidget {
       key: key,
       title: Text(post.title),
       onTap: () {
-        Navigator.of(context).push(
+        Navigator.push(
+          context,
           MaterialPageRoute(
-            builder: (BuildContext context) {
-              return PostDetailPageWidget();
-            },
+            builder: (BuildContext context) => PostDetailPage(post: post),
           ),
         );
       },
+    );
+  }
+}
+
+class PostDetailPage extends StatelessWidget {
+  const PostDetailPage({
+    Key key,
+    @required this.post,
+  }) : super(key: key);
+  final Post post;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(post.title),
+      ),
+      body: Container(
+        child: Text(post.body),
+      ),
     );
   }
 }
@@ -301,12 +319,5 @@ class PostLoadingWidget extends StatelessWidget {
       beginAlign: Alignment.centerLeft,
       endAlign: Alignment.centerLeft,
     );
-  }
-}
-
-class PostDetailPageWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    throw Container();
   }
 }
