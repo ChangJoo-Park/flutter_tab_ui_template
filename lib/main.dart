@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart' as http;
 import 'package:remote_api_list/models/post.dart';
 
@@ -149,12 +150,54 @@ class _MyHomePageState extends State<MyHomePage> {
       return EmptyPostsWidget();
     }
 
-    return ListView.builder(
-      itemCount: _items.length,
-      itemBuilder: (BuildContext context, int index) {
-        Post post = _items[index];
-        return PostListItemWidget(key: Key(post.id.toString()), post: post);
-      },
+    return AnimationLimiter(
+      child: ListView.builder(
+        itemCount: _items.length,
+        itemBuilder: (BuildContext context, int index) {
+          Post post = _items[index];
+          return PostListItemAnimationWidget(
+            key: Key('post-animation-${post.id}'),
+            index: index,
+            child: PostListItemWidget(
+              key: Key('post-${post.id}'),
+              post: post,
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class PostListItemAnimationWidget extends StatelessWidget {
+  const PostListItemAnimationWidget({
+    Key key,
+    @required this.child,
+    @required this.index,
+    this.duration = const Duration(milliseconds: 225),
+    this.verticalOffset,
+    this.delay,
+  }) : super(key: key);
+
+  final Widget child;
+  final int index;
+  final double verticalOffset;
+  final Duration duration;
+  final Duration delay;
+  @override
+  Widget build(BuildContext context) {
+    return AnimationConfiguration.staggeredList(
+      position: index,
+      duration: duration,
+      delay: delay,
+      child: ScaleAnimation(
+        child: SlideAnimation(
+          verticalOffset: verticalOffset,
+          child: FadeInAnimation(
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -169,7 +212,18 @@ class PostListItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(key: key, title: Text(post.title));
+    return Container(
+      margin: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(4.0),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blueAccent),
+        borderRadius: BorderRadius.all(Radius.circular(5.0)),
+      ),
+      child: ListTile(
+        key: key,
+        title: Text(post.title),
+      ),
+    );
   }
 }
 
