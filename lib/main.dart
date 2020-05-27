@@ -114,14 +114,6 @@ class _MyHomePageState extends State<MyHomePage> {
               });
             },
           ),
-          IconButton(
-            icon: Icon(Icons.add),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Icon(Icons.remove),
-            onPressed: () {},
-          )
         ],
       ),
       body: _renderContent(),
@@ -222,6 +214,7 @@ class PostListItemWidget extends StatelessWidget {
       child: ListTile(
         key: key,
         title: Text(post.title),
+        onTap: () {},
       ),
     );
   }
