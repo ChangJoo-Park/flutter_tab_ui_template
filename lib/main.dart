@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_shimmer/flutter_shimmer.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart' as http;
 import 'package:remote_api_list/models/post.dart';
+import 'package:scroll_bottom_navigation_bar/scroll_bottom_navigation_bar.dart';
 
 Future<List<Post>> fetchPosts(http.Client client) async {
   final response =
@@ -45,18 +47,27 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   bool _initialLoad = true;
   bool _loading = false;
   bool _showLoading = false;
   bool _error = false;
   List<Post> _items = [];
   String url;
+  // Tab
+  int _selectedIndex = 0;
+  // Scroll
+  final controller = ScrollController();
 
   @override
   void initState() {
-    super.initState();
     _fetchPosts();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   void _fetchPosts() {
@@ -102,28 +113,54 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(stateTitle),
-        actions: [
-          IconButton(
-            icon: this._showLoading
-                ? Icon(Icons.notifications_active)
-                : Icon(Icons.notifications_off),
-            onPressed: () {
-              setState(() {
-                this._showLoading = !this._showLoading;
-              });
-            },
-          ),
-        ],
-      ),
-      body: _renderContent(),
-      floatingActionButton: FloatingActionButton(
+        appBar: AppBar(
+          title: Text(stateTitle),
+          actions: [
+            IconButton(
+              icon: this._showLoading
+                  ? Icon(Icons.notifications_active)
+                  : Icon(Icons.notifications_off),
+              onPressed: () {
+                setState(() {
+                  this._showLoading = !this._showLoading;
+                });
+              },
+            ),
+          ],
+        ),
+        body: ValueListenableBuilder<int>(
+          valueListenable: controller.bottomNavigationBar.tabNotifier,
+          builder: (BuildContext context, int tabIndex, Widget child) {
+            // TODO: 여기서 tabIndex 컨트롤
+            return Snap(
+              controller: controller.bottomNavigationBar,
+              child: _renderContent(),
+            );
+          },
+        ),
+        floatingActionButton: FloatingActionButton(
           child: Icon(Icons.refresh),
           onPressed: () {
             _fetchPosts();
-          }),
-    );
+          },
+        ),
+        bottomNavigationBar: ScrollBottomNavigationBar(
+          controller: controller,
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              title: Text('Home'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.business),
+              title: Text('Business'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.school),
+              title: Text('School'),
+            ),
+          ],
+        ));
   }
 
   _renderContent() {
@@ -145,6 +182,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return AnimationLimiter(
       child: ListView.separated(
+        controller: controller,
         separatorBuilder: (BuildContext context, int index) => Divider(
           color: Colors.black,
         ),
