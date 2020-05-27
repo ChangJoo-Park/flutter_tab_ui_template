@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_shimmer/flutter_shimmer.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart' as http;
 import 'package:remote_api_list/models/post.dart';
@@ -143,7 +144,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     return AnimationLimiter(
-      child: ListView.builder(
+      child: ListView.separated(
+        separatorBuilder: (BuildContext context, int index) => Divider(
+          color: Colors.black,
+        ),
         itemCount: _items.length,
         itemBuilder: (BuildContext context, int index) {
           Post post = _items[index];
@@ -204,18 +208,10 @@ class PostListItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(8.0),
-      padding: const EdgeInsets.all(4.0),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.blueAccent),
-        borderRadius: BorderRadius.all(Radius.circular(5.0)),
-      ),
-      child: ListTile(
-        key: key,
-        title: Text(post.title),
-        onTap: () {},
-      ),
+    return ListTile(
+      key: key,
+      title: Text(post.title),
+      onTap: () {},
     );
   }
 }
@@ -249,6 +245,13 @@ class PostLoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(child: CircularProgressIndicator());
+    return ListTileShimmer(
+      isRectBox: true,
+      isDisabledAvatar: true,
+      isDisabledButton: true,
+      padding: const EdgeInsets.all(0),
+      beginAlign: Alignment.centerLeft,
+      endAlign: Alignment.centerLeft,
+    );
   }
 }
