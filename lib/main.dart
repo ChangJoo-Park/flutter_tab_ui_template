@@ -137,7 +137,12 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
             // TODO: 여기서 tabIndex 컨트롤
             return Snap(
               controller: controller.bottomNavigationBar,
-              child: _renderContent(),
+              child: RefreshIndicator(
+                  child: _renderContent(),
+                  onRefresh: () {
+                    _fetchPosts();
+                    return Future.value(true);
+                  }),
             );
           },
         ),
