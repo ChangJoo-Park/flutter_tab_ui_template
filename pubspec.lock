@@ -116,6 +116,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.0"
+  scroll_app_bar:
+    dependency: "direct main"
+    description:
+      name: scroll_app_bar
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   scroll_bars_common:
     dependency: transitive
     description:

@@ -7,6 +7,7 @@ import 'package:flutter_shimmer/flutter_shimmer.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:http/http.dart' as http;
 import 'package:remote_api_list/models/post.dart';
+import 'package:scroll_app_bar/scroll_app_bar.dart';
 import 'package:scroll_bottom_navigation_bar/scroll_bottom_navigation_bar.dart';
 
 Future<List<Post>> fetchPosts(http.Client client) async {
@@ -113,7 +114,8 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
+        appBar: ScrollAppBar(
+          controller: controller,
           title: Text(stateTitle),
           actions: [
             IconButton(
@@ -249,7 +251,15 @@ class PostListItemWidget extends StatelessWidget {
     return ListTile(
       key: key,
       title: Text(post.title),
-      onTap: () {},
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (BuildContext context) {
+              return PostDetailPageWidget();
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -291,5 +301,12 @@ class PostLoadingWidget extends StatelessWidget {
       beginAlign: Alignment.centerLeft,
       endAlign: Alignment.centerLeft,
     );
+  }
+}
+
+class PostDetailPageWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    throw Container();
   }
 }
