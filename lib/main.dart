@@ -115,6 +115,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        drawer: Drawer(),
         appBar: ScrollAppBar(
           controller: controller,
           title: Text(stateTitle),
